@@ -1,147 +1,112 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import OwlCarousel from "react-owl-carousel";
-import "owl.carousel/dist/assets/owl.carousel.css";
-import "owl.carousel/dist/assets/owl.theme.default.css";
+import React, { useEffect, useState, useRef } from "react";
+import Slider from "react-slick";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import CountdownTimer from "./CountdownTimer";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import "./NewItems.css"; // Your custom styles
 
 const NewItems = () => {
-  const [newItemsData, setNewItemsData] = useState([]);
+  const [items, setItems] = useState([]);
+  const sliderRef = useRef(null);
 
   useEffect(() => {
-    const fetchNewItems = async () => {
+    const fetchItems = async () => {
       try {
-        const response = await axios.get(
+        const { data } = await axios.get(
           "https://us-central1-nft-cloud-functions.cloudfunctions.net/newItems"
         );
-        setNewItemsData(response.data.map(item => ({
-          ...item,
-          timeLeft: calculateTimeLeft(item.expiryDate),
-        })));
-      } catch (error) {
-        console.error("Error fetching new items:", error);
+        setItems(data);
+      } catch (err) {
+        console.error("Error fetching new items:", err);
       }
     };
 
-    fetchNewItems();
+    fetchItems();
   }, []);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setNewItemsData((prevItems) =>
-        prevItems.map((item) => ({
-          ...item,
-          timeLeft: calculateTimeLeft(item.expiryDate),
-        }))
-      );
-    }, 1000);
+  // Custom arrow component
+  const SampleArrow = ({ className, style, onClick, direction }) => (
+    <button
+      className={`${className} custom-arrow-button`}
+      style={{ ...style }} // Keeps react-slick's positioning
+      onClick={onClick}
+      aria-label={direction === "next" ? "Next" : "Previous"}
+    >
+      {direction === "next" ? ">" : "<"}
+    </button>
+  );
 
-    return () => clearInterval(intervalId); // Cleanup on unmount
-  }, []);
-
-  const calculateTimeLeft = (expiryDate) => {
-    const now = new Date().getTime();
-    const difference = new Date(expiryDate).getTime() - now;
-
-    if (difference <= 0) {
-      return "Expired";
-    }
-
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
-  };
-
-  const carouselOptions = {
-    loop: newItemsData.length > 4,
-    margin: 30,
-    nav: true, // Enabled navigation arrows
-    dots: false, // Disabled dots
-    responsive: {
-      0: {
-        items: 1,
+  const settings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    nextArrow: <SampleArrow direction="next" />,
+    prevArrow: <SampleArrow direction="prev" />,
+    responsive: [
+      {
+        breakpoint: 1200,
+        settings: { slidesToShow: 3 },
       },
-      600: {
-        items: 2,
+      {
+        breakpoint: 992,
+        settings: { slidesToShow: 2 },
       },
-      992: {
-        items: 3,
+      {
+        breakpoint: 600,
+        settings: { slidesToShow: 1 },
       },
-      1200: {
-        items: 4,
-      },
-    },
+    ],
   };
 
   return (
     <section id="section-items" className="no-bottom">
       <div className="container">
         <div className="row">
-          <div className="col-lg-12">
-            <div className="text-center">
-              <h2>New Items</h2>
-              <div className="small-border bg-color-2"></div>
-            </div>
+          <div className="col-lg-12 text-center">
+            <h2>New Items</h2>
+            <div className="small-border bg-color-2"></div>
           </div>
           <div className="col-lg-12">
-            {newItemsData.length > 0 ? (
-              <OwlCarousel className="owl-theme" {...carouselOptions}>
-                {newItemsData.map((item) => (
+            {items.length > 0 ? (
+              <Slider {...settings} ref={sliderRef}>
+                {items.map((item) => (
                   <div className="item" key={item.id}>
                     <div className="nft__item">
                       <div className="author_list_pp">
-                        <Link
-                          to={`/author/${item.authorId}`}
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={`Creator: ${item.authorId}`}
-                        >
-                          <img
-                            className="lazy"
-                            src={item.authorImage}
-                            alt={`Author ${item.authorId}`}
-                          />
+                        <Link to={`/author/${item.authorId}`}>
+                          <img className="lazy" src={item.authorImage} alt="" />
                           <i className="fa fa-check"></i>
                         </Link>
                       </div>
-                      <div className="de_countdown">{item.timeLeft}</div>
+
+                      <div className="de_countdown-wrapper">
+                        <CountdownTimer expiryDate={item.expiryDate} />
+                      </div>
+
                       <div className="nft__item_wrap">
                         <div className="nft__item_extra">
                           <div className="nft__item_buttons">
                             <button>Buy Now</button>
                             <div className="nft__item_share">
                               <h4>Share</h4>
-                              <a
-                                href={`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}/item/${item.nftId}`}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
+                              <a href={`https://facebook.com/sharer/sharer.php?u=/item/${item.nftId}`} target="_blank" rel="noreferrer">
                                 <i className="fa fa-facebook fa-lg"></i>
                               </a>
-                              <a
-                                href={`https://twitter.com/intent/tweet?url=${window.location.href}/item/${item.nftId}&text=${item.title}`}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
+                              <a href={`https://twitter.com/intent/tweet?url=/item/${item.nftId}`} target="_blank" rel="noreferrer">
                                 <i className="fa fa-twitter fa-lg"></i>
                               </a>
-                              <a href={`mailto:?subject=Check out this NFT&body=I found this interesting NFT: ${window.location.href}/item/${item.nftId}`}>
+                              <a href={`mailto:?subject=Check out this NFT&body=/item/${item.nftId}`}>
                                 <i className="fa fa-envelope fa-lg"></i>
                               </a>
                             </div>
                           </div>
                         </div>
                         <Link to={`/item-details/${item.nftId}`}>
-                          <img
-                            src={item.nftImage}
-                            className="lazy nft__item_preview"
-                            alt={item.title}
-                          />
+                          <img className="lazy nft__item_preview" src={item.nftImage} alt={item.title} />
                         </Link>
                       </div>
                       <div className="nft__item_info">
@@ -150,14 +115,13 @@ const NewItems = () => {
                         </Link>
                         <div className="nft__item_price">{item.price} ETH</div>
                         <div className="nft__item_like">
-                          <i className="fa fa-heart"></i>
-                          <span>{item.likes}</span>
+                          <i className="fa fa-heart"></i> <span>{item.likes}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
-              </OwlCarousel>
+              </Slider>
             ) : (
               <p>Loading new items...</p>
             )}

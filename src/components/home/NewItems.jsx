@@ -1,36 +1,39 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react"; 
 import Slider from "react-slick";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import CountdownTimer from "./CountdownTimer";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import "./NewItems.css"; // Your custom styles
+import "./NewItems.css"; 
 
 const NewItems = () => {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const sliderRef = useRef(null);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setLoading(true); 
         const { data } = await axios.get(
           "https://us-central1-nft-cloud-functions.cloudfunctions.net/newItems"
         );
         setItems(data);
+        setLoading(false); 
       } catch (err) {
         console.error("Error fetching new items:", err);
+        setLoading(false); 
       }
     };
 
     fetchItems();
   }, []);
 
-  // Custom arrow component
   const SampleArrow = ({ className, style, onClick, direction }) => (
     <button
       className={`${className} custom-arrow-button`}
-      style={{ ...style }} // Keeps react-slick's positioning
+      style={{ ...style }}
       onClick={onClick}
       aria-label={direction === "next" ? "Next" : "Previous"}
     >
@@ -42,7 +45,7 @@ const NewItems = () => {
     dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 4,
+    slidesToShow: 4, 
     slidesToScroll: 1,
     nextArrow: <SampleArrow direction="next" />,
     prevArrow: <SampleArrow direction="prev" />,
@@ -62,6 +65,9 @@ const NewItems = () => {
     ],
   };
 
+  const numberOfSkeletons = settings.slidesToShow;
+
+
   return (
     <section id="section-items" className="no-bottom">
       <div className="container">
@@ -71,7 +77,36 @@ const NewItems = () => {
             <div className="small-border bg-color-2"></div>
           </div>
           <div className="col-lg-12">
-            {items.length > 0 ? (
+            {loading ? (
+              // Skeleton Loading State
+              <div className="slick-list">
+                <div className="slick-track">
+                  {Array.from({ length: numberOfSkeletons }).map((_, index) => (
+                    <div className="slick-slide" key={index}>
+                      <div className="item">
+                        <div className="nft__item skeleton-item"> 
+                          <div className="author_list_pp">
+                            <div className="skeleton-avatar"></div> 
+                          </div>
+                          <div className="de_countdown-wrapper">
+                            <div className="skeleton-badge"></div> 
+                          </div>
+                          <div className="nft__item_wrap">
+                            <div className="skeleton-image"></div> 
+                          </div>
+                          <div className="nft__item_info">
+                            <div className="skeleton-text skeleton-title"></div>
+                            <div className="skeleton-price"></div>
+                            <div className="skeleton-likes"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : items.length > 0 ? (
+              
               <Slider {...settings} ref={sliderRef}>
                 {items.map((item) => (
                   <div className="item" key={item.id}>
@@ -82,28 +117,26 @@ const NewItems = () => {
                           <i className="fa fa-check"></i>
                         </Link>
                       </div>
-
                       <div className="de_countdown-wrapper">
                         <CountdownTimer expiryDate={item.expiryDate} />
                       </div>
-
                       <div className="nft__item_wrap">
                         <div className="nft__item_extra">
-                          <div className="nft__item_buttons">
-                            <button>Buy Now</button>
-                            <div className="nft__item_share">
-                              <h4>Share</h4>
-                              <a href={`https://facebook.com/sharer/sharer.php?u=/item/${item.nftId}`} target="_blank" rel="noreferrer">
-                                <i className="fa fa-facebook fa-lg"></i>
-                              </a>
-                              <a href={`https://twitter.com/intent/tweet?url=/item/${item.nftId}`} target="_blank" rel="noreferrer">
-                                <i className="fa fa-twitter fa-lg"></i>
-                              </a>
-                              <a href={`mailto:?subject=Check out this NFT&body=/item/${item.nftId}`}>
-                                <i className="fa fa-envelope fa-lg"></i>
-                              </a>
+                           <div className="nft__item_buttons">
+                              <button>Buy Now</button>
+                              <div className="nft__item_share">
+                                <h4>Share</h4>
+                                <a href={`https://facebook.com/sharer/sharer.php?u=/item/${item.nftId}`} target="_blank" rel="noreferrer">
+                                  <i className="fa fa-facebook fa-lg"></i>
+                                </a>
+                                <a href={`https://twitter.com/intent/tweet?url=/item/${item.nftId}`} target="_blank" rel="noreferrer">
+                                  <i className="fa fa-twitter fa-lg"></i>
+                                </a>
+                                <a href={`mailto:?subject=Check out this NFT&body=/item/${item.nftId}`}>
+                                  <i className="fa fa-envelope fa-lg"></i>
+                                </a>
+                              </div>
                             </div>
-                          </div>
                         </div>
                         <Link to={`/item-details/${item.nftId}`}>
                           <img className="lazy nft__item_preview" src={item.nftImage} alt={item.title} />
@@ -123,7 +156,7 @@ const NewItems = () => {
                 ))}
               </Slider>
             ) : (
-              <p>Loading new items...</p>
+              <p className="text-center">No new items found.</p>
             )}
           </div>
         </div>

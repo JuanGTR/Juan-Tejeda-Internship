@@ -36,7 +36,7 @@ const AuthorItems = ({ nftCollection, itemsLoading }) => {
         <div className="row">
           {nftCollection.map((nft) => (
             <div className="col-lg-3 col-md-6 col-sm-6 col-xs-12" key={nft.id}>
-              <div className="nft__item">
+              <div className="nft__item" data-aos="zoom-in-right">
                 <div className="nft__item_wrap">
                   <div className="nft__item_extra">
                     <div className="nft__item_buttons">

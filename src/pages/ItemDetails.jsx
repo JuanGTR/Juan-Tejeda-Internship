@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import EthImage from "../images/ethereum.svg";
 import { Link, useParams } from "react-router-dom";
-import ItemDetailsSkeleton from "./ItemDetailsSkeleton";
+import ItemDetailsSkeleton from "./ItemDetailsSkeleton"; 
 import './ItemDetailsSkeleton.css';
 
 const ItemDetails = () => {
@@ -14,13 +14,13 @@ const ItemDetails = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const fetchNftDetails = async () => {
-      if (!nftId) {
-         setError(new Error("NFT ID not found in URL parameters."));
-         setIsLoading(false);
-         return;
-      }
+    if (!nftId) {
+       setError(new Error("NFT ID not found in URL parameters."));
+       setIsLoading(false);
+       return;
+    }
 
+    const fetchNftDetails = async () => {
       try {
         setIsLoading(true);
         setError(null);
@@ -53,6 +53,7 @@ const ItemDetails = () => {
 
   }, [nftId]);
 
+  // ** UPDATED: Render the skeleton component when loading **
   if (isLoading) {
     return <ItemDetailsSkeleton />;
   }
@@ -92,6 +93,7 @@ const ItemDetails = () => {
        );
    }
 
+
   return (
     <div id="wrapper">
       <div className="no-bottom no-top" id="content">
@@ -99,18 +101,18 @@ const ItemDetails = () => {
         <section aria-label="section" className="mt90 sm-mt-0">
           <div className="container">
             <div className="row">
-              <div className="col-md-6 text-center" data-aos="fade-right">
+              <div className="col-md-6 text-center">
                 <img
                   src={nftData.nftImage}
                   className="img-fluid img-rounded mb-sm-30 nft-image"
                   alt={nftData.title}
                 />
               </div>
-              <div className="col-md-6" data-aos="fade-left">
+              <div className="col-md-6">
                 <div className="item_info">
-                  <h2 data-aos="fade-up" data-aos-delay="100">{nftData.title}</h2>
+                  <h2>{nftData.title}</h2>
 
-                  <div className="item_info_counts" data-aos="fade-up" data-aos-delay="200">
+                  <div className="item_info_counts">
                     <div className="item_info_views">
                       <i className="fa fa-eye"></i>
                       {nftData.views}
@@ -120,9 +122,9 @@ const ItemDetails = () => {
                       {nftData.likes}
                     </div>
                   </div>
-                  <p data-aos="fade-up" data-aos-delay="300">{nftData.description}</p>
+                  <p>{nftData.description}</p>
 
-                  <div className="d-flex flex-row" data-aos="fade-up" data-aos-delay="400">
+                  <div className="d-flex flex-row">
                     <div className="mr40">
                       <h6>Owner</h6>
                       <div className="item_author">
@@ -140,7 +142,7 @@ const ItemDetails = () => {
                      <div></div>
                   </div>
                   <div className="de_tab tab_simple">
-                    <div className="de_tab_content" data-aos="fade-up" data-aos-delay="500">
+                    <div className="de_tab_content">
                       <h6>Creator</h6>
                       <div className="item_author">
                          <div className="author_list_pp">
@@ -155,8 +157,8 @@ const ItemDetails = () => {
                       </div>
                     </div>
                     <div className="spacer-40"></div>
-                    <h6 data-aos="fade-up" data-aos-delay="600">Price</h6>
-                    <div className="nft-item-price" data-aos="fade-up" data-aos-delay="700">
+                    <h6>Price</h6>
+                    <div className="nft-item-price">
                       <img src={EthImage} alt="Ethereum icon" />
                       <span>{nftData.price}</span>
                     </div>
